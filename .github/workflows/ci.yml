@@ -7,7 +7,7 @@ on:
 
 jobs:
   ci:
-    name: CI - Test, Build & Push Image
+    name: CI - Test, Build & Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -35,32 +35,28 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/ci-cd-clean-app:latest .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/ci-cd:latest .
 
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/ci-cd-clean-app:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/ci-cd:latest
 
   cd:
-    name: CD - Deploy to EC2
+    name: CD - Debug EC2 SSH Connection
     runs-on: ubuntu-latest
     needs: ci
 
     steps:
-      - name: Deploy to EC2 via SSH
+      - name: Debug SSH to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            docker stop ci-cd-clean-app || true
-            docker rm ci-cd-clean-app || true
-            docker pull ${{ secrets.DOCKER_USERNAME }}/ci-cd-clean-app:latest
-            docker run -d \
-              --name ci-cd-clean-app \
-              -p 5000:5000 \
-              ${{ secrets.DOCKER_USERNAME }}/ci-cd-clean-app:latest
+            echo "Connected to EC2"
+            hostname
+
 
 
 
